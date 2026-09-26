@@ -44,22 +44,34 @@ Write-Host "Using Python: $python" -ForegroundColor DarkCyan
 $venvPython = Join-Path $root ".venv\Scripts\python.exe"
 if (-not (Test-Path $venvPython)) {
     Write-Host "Creating virtual environment..." -ForegroundColor Cyan
-    & $python -m venv .venv
-    if (-not (Test-Path $venvPython)) {
-        Write-Host "Failed to create the virtual environment at .venv" -ForegroundColor Red
-        Write-Host "Try running: `"$python`" -m venv .venv" -ForegroundColor Yellow
-        exit 1
-    }
+    try { & $python -m venv .venv } catch { }
+}
+
+if (Test-Path $venvPython) {
+    $target = $venvPython
+} else {
+    $target = $python
+    Write-Host "Could not create a virtual environment here (Windows often blocks writes inside" -ForegroundColor Yellow
+    Write-Host "Documents/OneDrive - see 'Controlled folder access'). Installing into $python instead." -ForegroundColor Yellow
+    Write-Host "If that also fails, copy this folder to a plain path such as C:\jarvis and rerun." -ForegroundColor Yellow
 }
 
 Write-Host "Installing dependencies..." -ForegroundColor Cyan
-& $venvPython -m pip install --upgrade pip
-& $venvPython -m pip install -r requirements.txt
-& $venvPython -m pip install -e .
+& $target -m pip install --upgrade pip
+& $target -m pip install -r requirements.txt
+try {
+    & $target -m pip install -e .
+} catch {
+    Write-Host "Editable install failed; run_jarvis.bat falls back to src/ on PYTHONPATH." -ForegroundColor Yellow
+}
 
 if (-not (Test-Path "config.yaml")) {
-    Copy-Item "config.example.yaml" "config.yaml"
-    Write-Host "Created config.yaml - edit it to change voices, apps and the language model." -ForegroundColor Yellow
+    try {
+        Copy-Item "config.example.yaml" "config.yaml"
+        Write-Host "Created config.yaml - edit it to change voices, apps and the language model." -ForegroundColor Yellow
+    } catch {
+        Write-Host "Could not write config.yaml here; JARVIS will run with built-in defaults." -ForegroundColor Yellow
+    }
 }
 
 $ollama = (Get-Command ollama -ErrorAction SilentlyContinue)
