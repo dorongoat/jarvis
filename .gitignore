@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+build/
+dist/
+*.spec.bak
+config.yaml
+.jarvis/
+*.mp3
+*.wav
+.pytest_cache/
+.ruff_cache/

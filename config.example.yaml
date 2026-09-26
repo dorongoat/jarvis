@@ -1,0 +1,70 @@
+# JARVIS configuration. Copy to config.yaml and edit.
+# העתק לקובץ config.yaml וערוך לפי הצורך.
+
+assistant:
+  name_en: "Jarvis"
+  name_he: "ג'ארוויס"
+  # Wake words (case insensitive). Say one of these to wake JARVIS up.
+  wake_words: ["jarvis", "hey jarvis", "ג'ארוויס", "גארוויס", "גרוויס", "ג׳ארוויס"]
+  # Language used before anything is heard: "he", "en" or "auto".
+  default_language: "auto"
+  # Seconds of silence after which JARVIS stops waiting for a follow-up command.
+  conversation_timeout: 25
+  # Personality of the replies: "jarvis" (dry British butler) or "plain".
+  persona: "jarvis"
+
+speech_to_text:
+  # "google" = free Google Web Speech (needs internet, best Hebrew quality)
+  # "whisper" = fully offline via faster-whisper (pip install faster-whisper)
+  engine: "google"
+  whisper_model: "small"
+  # Microphone index, null = system default. Run `python -m jarvis --list-mics`.
+  microphone_index: null
+  energy_threshold: 300
+  dynamic_energy: true
+  phrase_time_limit: 12
+
+text_to_speech:
+  # "edge" = Microsoft neural voices (free, excellent Hebrew), "sapi" = offline Windows voices
+  engine: "edge"
+  voice_he: "he-IL-AvriNeural"
+  voice_en: "en-GB-RyanNeural"
+  rate: "+8%"
+  volume: 1.0
+
+brain:
+  # "ollama" (local, free), "openai", "anthropic" or "offline" (commands only)
+  provider: "ollama"
+  ollama:
+    host: "http://localhost:11434"
+    model: "llama3.1:8b"
+  openai:
+    model: "gpt-4o-mini"
+    api_key_env: "OPENAI_API_KEY"
+  anthropic:
+    model: "claude-3-5-sonnet-latest"
+    api_key_env: "ANTHROPIC_API_KEY"
+  temperature: 0.6
+  max_history_turns: 12
+  # Let the model pick a skill when no phrase matched (needs a tool-capable model).
+  llm_routing: true
+
+skills:
+  weather_location: "Tel Aviv"
+  search_engine: "https://www.google.com/search?q={query}"
+  notes_file: "~/.jarvis/notes.txt"
+  # Friendly name -> what to launch. Works with exe names, paths or URLs.
+  apps:
+    spotify: "spotify.exe"
+    chrome: "chrome.exe"
+    notepad: "notepad.exe"
+    calculator: "calc.exe"
+    explorer: "explorer.exe"
+    youtube: "https://www.youtube.com"
+    whatsapp: "https://web.whatsapp.com"
+
+ui:
+  enabled: true
+  always_on_top: false
+  accent: "#33d6ff"
+  opacity: 0.97
