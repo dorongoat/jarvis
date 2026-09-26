@@ -60,8 +60,23 @@ skills:
     notepad: "notepad.exe"
     calculator: "calc.exe"
     explorer: "explorer.exe"
+    blender: "blender.exe"
+    steam: "steam.exe"
+    discord: "discord.exe"
+    paint: "mspaint.exe"
     youtube: "https://www.youtube.com"
     whatsapp: "https://web.whatsapp.com"
+    ספוטיפיי: "spotify.exe"
+    כרום: "chrome.exe"
+    פנקס רשימות: "notepad.exe"
+    מחשבון: "calc.exe"
+    סייר הקבצים: "explorer.exe"
+    בלנדר: "blender.exe"
+    סטים: "steam.exe"
+    דיסקורד: "discord.exe"
+    צייר: "mspaint.exe"
+    יוטיוב: "https://www.youtube.com"
+    וואטסאפ: "https://web.whatsapp.com"
 
 ui:
   enabled: true

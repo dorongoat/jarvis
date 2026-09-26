@@ -57,3 +57,19 @@ def test_notes_roundtrip(tmp_path, monkeypatch):
     skill, match = match_skill("read my notes")
     read = skill.handler(SkillContext(config, EN, "read my notes"), match)
     assert "חלב" in read.speech
+
+@pytest.mark.parametrize(
+    ("spoken", "expected"),
+    [
+        ("blender and make me a statue of luffy", "blender"),
+        ("בלנדר ותיצור לי פסל", "בלנדר"),
+        ("spotify", "spotify"),
+        ("visual studio code", "visual studio code"),
+        ("פנקס רשימות", "פנקס רשימות"),
+    ],
+)
+def test_app_name_extraction(spoken, expected):
+    from jarvis.config import DEFAULTS
+    from jarvis.skills.builtin import _app_name
+
+    assert _app_name(spoken, DEFAULTS["skills"]["apps"]) == expected

@@ -50,17 +50,72 @@ def _date(context: SkillContext, _match: re.Match[str]) -> SkillResult:
 
 
 # ---------------------------------------------------------------- apps
+CLAUSE_BREAKS = {"and", "then", "also", "please", "ואז", "אחרכך"}
+
+
+def _app_name(target: str, apps: dict[str, str]) -> str:
+    """Pull the application name out of a spoken sentence.
+
+    Speech recognition hands over whole utterances ("open blender and make me a
+    statue"), so a known alias wins, and otherwise the name is cut at the first
+    word that starts a new clause - in Hebrew that is any word prefixed with vav.
+    """
+    cleaned = " ".join(target.lower().split()).strip(" .,\"'")
+    for alias in sorted(apps, key=len, reverse=True):
+        if cleaned == alias or cleaned.startswith(f"{alias} "):
+            return alias
+    head: list[str] = []
+    for index, word in enumerate(cleaned.split(" ")):
+        if index and (word in CLAUSE_BREAKS or (word.startswith("ו") and len(word) > 2)):
+            break
+        head.append(word)
+        if len(head) == 3:
+            break
+    return " ".join(head)
+
+
+START_MENU_DIRS = (
+    r"%ProgramData%\Microsoft\Windows\Start Menu\Programs",
+    r"%AppData%\Microsoft\Windows\Start Menu\Programs",
+)
+
+
+def _start_menu_shortcut(name: str) -> str | None:
+    """Find a Start Menu .lnk for an app that is not on PATH (Blender, Steam, ...)."""
+    wanted = name.lower().removesuffix(".exe")
+    for directory in START_MENU_DIRS:
+        root = Path(os.path.expandvars(directory))
+        if not root.is_dir():
+            continue
+        for link in root.rglob("*.lnk"):
+            stem = link.stem.lower()
+            if stem == wanted or stem.startswith(f"{wanted} "):
+                return str(link)
+    return None
+
+
+def _start_windows(command: str) -> None:
+    try:
+        os.startfile(command)  # type: ignore[attr-defined]  # noqa: S606
+    except OSError:
+        shortcut = _start_menu_shortcut(command)
+        if not shortcut:
+            raise
+        os.startfile(shortcut)  # type: ignore[attr-defined]  # noqa: S606
+
+
 def _open_app(context: SkillContext, match: re.Match[str]) -> SkillResult:
-    target = (match.groupdict().get("target") or "").strip(" .,\"'")
-    if not target:
+    raw = (match.groupdict().get("target") or "").strip(" .,\"'")
+    if not raw:
         return _bilingual(context, "איזו תוכנה לפתוח, אדוני?", "Which application, sir?")
     apps: dict[str, str] = context.config.get("skills.apps", {}) or {}
-    command = apps.get(target.lower(), target)
+    target = _app_name(raw, apps)
+    command = apps.get(target, target)
     try:
         if command.startswith("http"):
             webbrowser.open(command)
         elif IS_WINDOWS:
-            os.startfile(command)  # type: ignore[attr-defined]  # noqa: S606
+            _start_windows(command)
         else:
             subprocess.Popen([command], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except Exception as exc:
